@@ -79,7 +79,7 @@ class Config {
 			}
 			else
 			{
-				$base_url = 'http://localhost/';
+				$base_url = getenv('APP_URL') ?: 'https://example.com/';
 			}
 			$this->set('base_url', $base_url);
 		}
