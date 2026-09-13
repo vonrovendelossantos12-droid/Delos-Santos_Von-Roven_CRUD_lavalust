@@ -90,7 +90,7 @@ $config['date_default_timezone'] = 'Asia/Manila';
 | WARNING: You MUST set this value!
 |
 */
-$config['base_url'] 				= getenv('APP_URL') ?: 'https://example.com/';
+$config['base_url'] 				= getenv('APP_URL') ?: 'http://127.0.0.1:8000/';
 
 /*
 |--------------------------------------------------------------------------
