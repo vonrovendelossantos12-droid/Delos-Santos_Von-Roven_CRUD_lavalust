@@ -43,6 +43,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |
 */
 /** @var object $router **/
+///somehting new
 
 $router->any('/', 'AuthController::login');
 $router->any('/login', 'AuthController::login');
