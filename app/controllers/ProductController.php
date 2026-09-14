@@ -1,145 +1,107 @@
 <?php
-
 defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
+/**
+ * Controller: ProductController
+ * 
+ * Automatically generated via CLI.
+ */
 class ProductController extends Controller
 {
     public function __construct()
     {
         parent::__construct();
-        $this->call->library('session');
         $this->call->model('ProductModel');
     }
 
-    public function index()
+    public function read()
     {
-        $products = $this->ProductModel->getAll();
-        $this->call->view('products/index', [
-            'title' => 'Products',
-            'products' => $products,
-            'success' => $this->session->flashdata('success')
-        ]);
+        $data['products'] = $this->ProductModel->read();
+        $data['name'] = $this->session->userdata('user_role') ?: 'User';
+        $data['user_role'] = $this->session->userdata('user_role');
+        $data['notification'] = $this->session->flashdata('notification');
+        $this->call->view('product/ProductView', $data);
     }
 
     public function create()
     {
-        $this->call->view('products/create', [
-            'title' => 'Add Product',
-            'product' => [],
-            'errors' => []
-        ]);
-    }
+        $this->require_admin();
 
-    public function store()
-    {
-        $data = $_POST ?? [];
-        $errors = $this->validateProduct($data);
-
-        if (!empty($errors)) {
-            $this->call->view('products/create', [
-                'title' => 'Add Product',
-                'product' => $data,
-                'errors' => $errors
-            ]);
-            return;
+        if ($this->form_validation->submitted()) {
+            $this->validate_product();
+            if ($this->form_validation->run()) {
+                $product_name = $this->io->post('product_name');
+                $description = $this->io->post('description');
+                $price = $this->io->post('price');
+                $quantity = $this->io->post('quantity');
+                $this->ProductModel->create($product_name, $description, $price, $quantity);
+                $this->session->set_flashdata('notification', 'Product added successfully.');
+                header('Location: ' . site_url('/product/display'));
+                exit;
+            }
         }
 
-        $this->ProductModel->store([
-            'name' => trim($data['name']),
-            'description' => trim($data['description'] ?? ''),
-            'price' => (float) ($data['price'] ?? 0),
-            'stock' => (int) ($data['stock'] ?? 0),
-        ]);
-
-        $this->session->set_flashdata('success', 'Product added successfully.');
-        $this->redirect('/products');
+        $data['errors'] = $this->form_validation->get_errors();
+        $this->call->view('product/create', $data);
     }
 
     public function edit($id)
     {
-        $product = $this->ProductModel->findById($id);
+        $this->require_admin();
+        $product = $this->ProductModel->find((int) $id);
 
         if (!$product) {
             show_404();
-        }
-
-        $this->call->view('products/edit', [
-            'title' => 'Edit Product',
-            'product' => $product,
-            'errors' => []
-        ]);
-    }
-
-    public function update($id)
-    {
-        $product = $this->ProductModel->findById($id);
-
-        if (!$product) {
-            show_404();
-        }
-
-        $data = $_POST ?? [];
-        $errors = $this->validateProduct($data);
-
-        if (!empty($errors)) {
-            $this->call->view('products/edit', [
-                'title' => 'Edit Product',
-                'product' => array_merge($product, $data),
-                'errors' => $errors
-            ]);
             return;
         }
 
-        $this->ProductModel->updateProduct($id, [
-            'name' => trim($data['name']),
-            'description' => trim($data['description'] ?? ''),
-            'price' => (float) ($data['price'] ?? 0),
-            'stock' => (int) ($data['stock'] ?? 0),
-        ]);
+        if ($this->form_validation->submitted()) {
+            $this->validate_product();
 
-        $this->session->set_flashdata('success', 'Product updated successfully.');
-        $this->redirect('/products');
+            if ($this->form_validation->run()) {
+                $this->ProductModel->update(
+                    (int) $id,
+                    $this->io->post('product_name'),
+                    $this->io->post('description'),
+                    $this->io->post('price'),
+                    $this->io->post('quantity')
+                );
+
+                $this->session->set_flashdata('notification', 'Product updated successfully.');
+                header('Location: ' . site_url('/product/display'));
+                exit;
+            }
+        }
+
+        $data['product'] = $product;
+        $data['errors'] = $this->form_validation->get_errors();
+        $this->call->view('product/edit', $data);
     }
 
     public function delete($id)
     {
-        $product = $this->ProductModel->findById($id);
-
-        if (!$product) {
-            show_404();
-        }
-
-        $this->ProductModel->deleteProduct($id);
-        $this->session->set_flashdata('success', 'Product deleted successfully.');
-        $this->redirect('/products');
-    }
-
-    private function validateProduct(array $data)
-    {
-        $errors = [];
-
-        if (empty(trim((string) ($data['name'] ?? '')))) {
-            $errors['name'] = 'Product name is required.';
-        }
-
-        if (empty(trim((string) ($data['price'] ?? '')))) {
-            $errors['price'] = 'Price is required.';
-        } elseif (!is_numeric($data['price'])) {
-            $errors['price'] = 'Price must be numeric.';
-        }
-
-        if (!isset($data['stock']) || !is_numeric($data['stock'])) {
-            $errors['stock'] = 'Stock must be numeric.';
-        }
-
-        return $errors;
-    }
-
-    private function redirect($path)
-    {
-        $base = rtrim(BASE_URL ?? '', '/');
-        $target = $base !== '' ? $base . '/' . ltrim($path, '/') : '/' . ltrim($path, '/');
-        header('Location: ' . $target);
+        $this->require_admin();
+        $this->ProductModel->delete((int) $id);
+        $this->session->set_flashdata('notification', 'Product deleted successfully.');
+        header('Location: ' . site_url('/product/display'));
         exit;
     }
+
+    private function validate_product()
+    {
+        $this->form_validation
+            ->name('product_name')->required()->alpha_numeric_space()
+            ->name('description')->required()->max_length(255)
+            ->name('price')->required()->numeric()
+            ->name('quantity')->required()->numeric();
+    }
+
+    private function require_admin()
+    {
+        if ($this->session->userdata('user_role') !== 'admin') {
+            show_error('403 Forbidden', 'Administrator access is required for this action.', 'error_general', 403);
+            exit;
+        }
+    }
+
 }

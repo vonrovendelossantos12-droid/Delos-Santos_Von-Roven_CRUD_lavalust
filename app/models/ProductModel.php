@@ -1,61 +1,53 @@
 <?php
-
 defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
-class ProductModel extends Model
-{
-    public $db;
-
-    protected $table = 'products';
+/**
+ * Model: ProductModel
+ * 
+ * Automatically generated via CLI.
+ */
+class ProductModel extends Model {
+    protected $table = '';
     protected $primary_key = 'id';
-    protected $fillable = ['name', 'description', 'price', 'stock'];
-    protected $timestamps = true;
+    protected $fillable = [];
+    protected $guarded = ['id'];
 
     public function __construct()
     {
         parent::__construct();
-        $this->db = lava_instance()->call->database();
-        $this->ensure_table();
     }
 
-    public function ensure_table()
-    {
-        $db = lava_instance()->call->database();
-        $db->raw("CREATE TABLE IF NOT EXISTS products (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            description TEXT DEFAULT '',
-            price DECIMAL(10,2) NOT NULL DEFAULT 0,
-            stock INTEGER NOT NULL DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-
-        return true;
+    public function read(){
+        return $this->db->table('products')->get_all();
     }
 
-    public function getAll()
-    {
-        return $this->all();
+    public function find($id){
+        return $this->db->table('products')->where('id', $id)->get();
     }
 
-    public function findById($id)
-    {
-        return $this->find($id);
+    public function create($product_name, $description, $price, $quantity){
+        $data = array(
+            'product_name' => $product_name,
+            'description' => $description,
+            'price' => $price,
+            'quantity' => $quantity
+        );
+
+        $this->db->table('products')->insert($data);
     }
 
-    public function store(array $data)
-    {
-        return $this->insert($data);
+    public function update($id, $product_name, $description, $price, $quantity){
+        $data = array(
+            'product_name' => $product_name,
+            'description' => $description,
+            'price' => $price,
+            'quantity' => $quantity
+        );
+
+        return $this->db->table('products')->where('id', $id)->update($data);
     }
 
-    public function updateProduct($id, array $data)
-    {
-        return $this->update($id, $data);
-    }
-
-    public function deleteProduct($id)
-    {
-        return $this->delete($id);
+    public function delete($id){
+        return $this->db->table('products')->where('id', $id)->delete();
     }
 }

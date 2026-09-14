@@ -10,20 +10,19 @@ class Security_headers
     {
         $nonce = base64_encode(random_bytes(32));
 
+        // Make nonce available globally as early as possible
         $_lava = lava_instance();
         $_lava->call->library('session');
         $_lava->session->set_userdata('csp_nonce', $nonce);
 
+        // Also put it in a global variable that error pages can access
         if (!defined('CSP_NONCE')) {
             define('CSP_NONCE', $nonce);
         }
 
-        // Split both scripts and styles into structural elements (-elem) and attribute handlers (-attr)
         $csp = "default-src 'self'; " .
-               "script-src-elem 'self' 'nonce-{$nonce}'; " .
-               "script-src-attr 'unsafe-inline'; " .
-               "style-src-elem 'self' 'nonce-{$nonce}'; " .
-               "style-src-attr 'unsafe-inline'; " .
+               "script-src 'self' 'nonce-{$nonce}'; " .
+               "style-src 'self' 'nonce-{$nonce}'; " .
                "img-src 'self' data:; " .
                "font-src 'self'; " .
                "object-src 'none'; " .
@@ -33,10 +32,11 @@ class Security_headers
                "upgrade-insecure-requests;";
 
         header("Content-Security-Policy: " . $csp);
+        // header("Content-Security-Policy-Report-Only: " . $csp); // for testing
         header("X-Content-Type-Options: nosniff");
         header("X-Frame-Options: DENY");
         header("Referrer-Policy: strict-origin-when-cross-origin");
-        header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
-        header("Permissions-Policy: geolocation=(), microphone=(), camera=()");
+        header("Strict-Transport-Security: max-age=31536000; includeSubDomains"); // if HTTPS
+        header("Permissions-Policy: geolocation=(), microphone=(), camera=()"); // feature policy
     }
 }

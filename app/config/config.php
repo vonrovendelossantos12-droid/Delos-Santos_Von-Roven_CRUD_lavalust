@@ -34,8 +34,6 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
  * @license https://opensource.org/licenses/MIT MIT License
  */
 
-require_once APP_DIR . 'middlewares/AuthMiddleware.php';
-
 /*
 | -------------------------------------------------------------------
 |  Config Files
@@ -70,15 +68,6 @@ $config['environment'] = getenv('APP_ENV') ?: 'development';
 
 /*
 |--------------------------------------------------------------------------
-| Default Timezone
-|--------------------------------------------------------------------------
-| The default timezone will be used by the date functions of PHP.
-|
-*/
-$config['date_default_timezone'] = 'Asia/Manila';
-
-/*
-|--------------------------------------------------------------------------
 | Base Site URL
 |--------------------------------------------------------------------------
 |
@@ -90,7 +79,7 @@ $config['date_default_timezone'] = 'Asia/Manila';
 | WARNING: You MUST set this value!
 |
 */
-$config['base_url'] 				= getenv('APP_URL') ?: 'http://127.0.0.1:8000/';
+$config['base_url'] 				= '';
 
 /*
 |--------------------------------------------------------------------------
@@ -101,6 +90,16 @@ $config['base_url'] 				= getenv('APP_URL') ?: 'http://127.0.0.1:8000/';
 |
 */
 $config['proxy_enabled']           = FALSE;
+/*
+|--------------------------------------------------------------------------
+| Index File
+|--------------------------------------------------------------------------
+|
+| If you are using mod_rewrite to remove index.php in the URL set this
+| variable to blank.
+|
+*/
+$config['index_page']               = '';
 
 /*
 |--------------------------------------------------------------------------
@@ -349,8 +348,4 @@ $config['csrf_token_name']         = 'csrf_test_name';
 $config['csrf_cookie_name']        = 'csrf_cookie_name';
 $config['csrf_expire']             = 7200;
 $config['csrf_regenerate']         = FALSE;
-
-$config['middlewares'] = [
-    'auth' => new AuthMiddleware()
-];
 ?>

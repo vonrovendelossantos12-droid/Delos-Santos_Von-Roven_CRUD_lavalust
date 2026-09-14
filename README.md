@@ -162,14 +162,14 @@ lavalust/
 
 ```php
 $database['main'] = array(
-    'driver'	=> getenv('DB_DRIVER') ?: '',
+    'driver'	=> '',
     'hostname'	=> getenv('DB_HOST') ?: '',
     'port'		=> getenv('DB_PORT') ?: '',
-    'username'	=> getenv('DB_USER') ?: '',
+    'username'	=> getenv('DB_USERNAME') ?: '',
     'password'	=> getenv('DB_PASSWORD') ?: '',
     'database'	=> getenv('DB_NAME') ?: '',
-    'charset'	=> getenv('DB_CHARSET') ?: '',
-    'dbprefix'	=> getenv('DB_PREFIX') ?: '',
+    'charset'	=> '',
+    'dbprefix'	=> '',
     // Optional for SQLite
     'path'      => ''
 );

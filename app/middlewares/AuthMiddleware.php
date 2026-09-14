@@ -1,16 +1,14 @@
 <?php
-
 defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
 class AuthMiddleware
 {
     public function handle($next)
     {
-        $session = load_class('Session', 'libraries');
+        $session = load_class('session', 'libraries');
 
-        if (!($session->userdata('logged_in') ?? false)) {
-            $redirect = (defined('BASE_URL') && BASE_URL !== '') ? rtrim(BASE_URL, '/') . '/login' : '/login';
-            header('Location: ' . $redirect);
+        if (!$session->has_userdata('user_id')) {
+            header('Location: ' . site_url('/login'));
             exit;
         }
 

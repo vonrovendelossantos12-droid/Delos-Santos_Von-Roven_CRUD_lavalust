@@ -41,12 +41,8 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | Used for adding middlewares
 |
 */
-if (!isset($config) || !is_array($config)) {
-    $config = [];
-}
-
 require_once APP_DIR . 'middlewares/AuthMiddleware.php';
 
 $config['middlewares'] = [
-    'auth' => new AuthMiddleware()
+	'AuthMiddleware' => new AuthMiddleware()
 ];

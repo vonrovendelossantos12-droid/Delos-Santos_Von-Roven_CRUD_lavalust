@@ -242,19 +242,12 @@ class Database {
             ? $database_config['path']
             : null;
 
-        $sslmode = isset($database_config['sslmode']) && !empty($database_config['sslmode'])
-            ? $database_config['sslmode']
-            : null;
-
         switch ($driver) {
             case 'mysql':
                 $dsn = "mysql:host=$host;dbname=$dbname_value;charset=$charset;port=$port";
                 break;
             case 'pgsql':
                 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname_value;user=$username;password=$password";
-                if (!empty($sslmode)) {
-                    $dsn .= ";sslmode={$sslmode}";
-                }
                 break;
             case 'sqlite':
                 if (empty($path)) {
@@ -1227,13 +1220,38 @@ class Database {
      * limit
      *
      * @param  integer $limit
-     * @param  integer $offset
+     * @param  integer $end
      * @return object
      */
-    public function limit($limit, $offset = null)
+    public function limit($limit, $end = null)
     {
-        $this->limit  = (int) $limit;
-        $this->offset = $offset !== null ? (int) $offset : null;
+        $driver = $this->driver;
+
+        if ($end === null) {
+            switch ($driver) {
+                case 'mysql':
+                case 'pgsql':
+                case 'sqlite':
+                    $this->limit = " LIMIT $limit";
+                    break;
+                case 'sqlsrv':
+                    $this->limit = " OFFSET 0 ROWS FETCH NEXT $limit ROWS ONLY";
+                    break;
+            }
+        } else {
+            switch ($driver) {
+                case 'mysql':
+                    $this->limit = " LIMIT $limit, $end";
+                    break;
+                case 'pgsql':
+                case 'sqlite':
+                    $this->limit = " LIMIT $end OFFSET $limit";
+                    break;
+                case 'sqlsrv':
+                    $this->limit = " OFFSET $limit ROWS FETCH NEXT $end ROWS ONLY";
+                    break;
+            }
+        }
 
         return $this;
     }
@@ -1246,7 +1264,9 @@ class Database {
      */
     public function offset($offset)
     {
-        $this->offset = (int) $offset;
+        $this->offset  = ' OFFSET ';
+        $this->offset .= $offset;
+
         return $this;
     }
 
@@ -1257,13 +1277,11 @@ class Database {
      * @param int $page
      * @return void
      */
-    public function pagination($records_per_page, $page): self
+    public function pagination($records_per_page, $page)
     {
-        $page = max(1, (int) $page);
-        $records_per_page = (int) $records_per_page;
+        $offset = ($page - 1) * $records_per_page;
 
-        $this->limit  = $records_per_page;
-        $this->offset = ($page - 1) * $records_per_page;
+        $this->limit = ' LIMIT ' . $offset . ', ' . $records_per_page;
 
         return $this;
     }
@@ -1380,30 +1398,11 @@ class Database {
         }
 
         if ($this->limit !== NULL) {
-            $driver = $this->driver;
+            $this->sql .= $this->limit;
+        }
 
-            switch ($driver) {
-                case 'mysql':
-                    if ($this->offset !== null) {
-                        $this->sql .= " LIMIT {$this->offset}, {$this->limit}";
-                    } else {
-                        $this->sql .= " LIMIT {$this->limit}";
-                    }
-                    break;
-
-                case 'pgsql':
-                case 'sqlite':
-                    $this->sql .= " LIMIT {$this->limit}";
-                    if ($this->offset !== null) {
-                        $this->sql .= " OFFSET {$this->offset}";
-                    }
-                    break;
-
-                case 'sqlsrv':
-                    $offset = $this->offset ?? 0;
-                    $this->sql .= " OFFSET {$offset} ROWS FETCH NEXT {$this->limit} ROWS ONLY";
-                    break;
-            }
+        if ($this->offset !== NULL) {
+            $this->sql .= $this->offset;
         }
     }
 
@@ -1451,7 +1450,7 @@ class Database {
      * @param  mixed ...$args Additional arguments for fetchAll()
      * @return array
      */
-    public function get_all($mode = PDO::FETCH_ASSOC, ...$args): array
+    public function get_all($mode = PDO::FETCH_ASSOC, ...$args)
     {
         $this->build_query();
         $this->get_sql = $this->sql;
@@ -1478,7 +1477,6 @@ class Database {
                 $this->bind_values ?? [],
                 $e
             );
-            return [];
         }
     }
 
@@ -1509,13 +1507,13 @@ class Database {
      * @param integer $amount
      * @return void
      */
-    public function increment($column, $amount = 1): int
+    public function increment($column, $amount = 1)
     {
         $this->validate_identifier($column);
         $this->sql         = "UPDATE {$this->table} SET {$column} = {$column} + ?";
         $this->bind_values = array_merge([$amount], $this->bind_values);
 
-        return (int) $this->exec();
+        return $this->exec();
     }
 
     /**
@@ -1525,13 +1523,13 @@ class Database {
      * @param integer $amount
      * @return void
      */
-    public function decrement($column, $amount = 1): int
+    public function decrement($column, $amount = 1)
     {
         $this->validate_identifier($column);
         $this->sql         = "UPDATE {$this->table} SET {$column} = {$column} - ?";
         $this->bind_values = array_merge([$amount], $this->bind_values);
 
-        return (int) $this->exec();
+        return $this->exec();
     }
 
     /**

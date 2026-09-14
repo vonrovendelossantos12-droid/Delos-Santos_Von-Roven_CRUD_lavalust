@@ -82,13 +82,6 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 class Model {  
     /**
-     * Database instance for the model
-     *
-     * @var object
-     */
-    public $db;
-
-    /**
      * Table Name of the Database
      *
      * @var string
@@ -295,9 +288,9 @@ class Model {
      *
      * @param string $column    
      * @param array $conditions
-     * @return array
+     * @return void
      */
-    public function _pluck($column, $conditions = [], $with_deleted = false): array
+    public function _pluck($column, $conditions = [], $with_deleted = false)
     {
         $this->db->table($this->table)->select($column);
         $this->apply_soft_delete($with_deleted);
@@ -313,9 +306,9 @@ class Model {
      *
      * @param array $conditions
      * @param array $extra_data
-     * @return array
+     * @return void
      */
-    public function _first_or_create($conditions, $extra_data = []): array
+    public function _first_or_create($conditions, $extra_data = [])
     {
         $this->db->table($this->table);
         $this->apply_soft_delete(false);
@@ -805,11 +798,10 @@ class Model {
      * @param boolean $with_deleted
      * @return void
      */
-    public function _filter($conditions = [], $with_deleted = false): self {
+    public function _filter($conditions = [], $with_deleted = false) {
         $this->db->table($this->table);
         $this->apply_soft_delete($with_deleted);
-        $this->db->where($conditions);
-        return $this;
+        return $this->db->where($conditions);
     }
 
     /**
@@ -871,7 +863,7 @@ class Model {
      * @param string $foreign_key
      * @return boolean
      */
-    protected function has_many($related, $foreign_key): array
+    protected function has_many($related, $foreign_key)
     {
         return ['type' => 'has_many', 'related' => $related, 'foreign_key' => $foreign_key];
     }
@@ -883,7 +875,7 @@ class Model {
      * @param string $foreign_key
      * @return boolean
      */
-    protected function has_one($related, $foreign_key): array
+    protected function has_one($related, $foreign_key)
     {
         return ['type' => 'has_one', 'related' => $related, 'foreign_key' => $foreign_key];
     }
@@ -898,7 +890,7 @@ class Model {
      * @param mixed $current_key
      * @return void
      */
-    protected function many_to_many($related, $pivot_table, $current_key, $related_key): array
+    protected function many_to_many($related, $pivot_table, $current_key, $related_key)
     {
         return [
             'type'         => 'many_to_many',
@@ -916,7 +908,7 @@ class Model {
      * @param string $foreign_key
      * @return void
      */
-    protected function belongs_to($related, $foreign_key): array
+    protected function belongs_to($related, $foreign_key)
     {
         return ['type' => 'belongs_to', 'related' => $related, 'foreign_key' => $foreign_key];
     }

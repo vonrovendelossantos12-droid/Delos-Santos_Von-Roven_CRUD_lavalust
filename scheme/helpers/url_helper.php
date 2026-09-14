@@ -78,14 +78,15 @@ if ( ! function_exists('site_url'))
 	 */
 	function site_url($uri = '', $protocol = null)
 	{
-		$base_url = rtrim(filter_var(BASE_URL ?? '', FILTER_SANITIZE_URL), '/');
+		$base_url   = rtrim(filter_var(BASE_URL ?? '', FILTER_SANITIZE_URL), '/');
+		$index_page = trim(config_item('index_page') ?? '', '/');
 
 		if ($protocol !== null) {
 			$base_url = preg_replace('#^https?://#i', rtrim($protocol, ':/') . '://', $base_url);
 		}
 
 		if (empty($uri)) {
-			return $base_url . '/';
+			return $index_page ? $base_url . '/' . $index_page : $base_url . '/';
 		}
 
 		if (is_array($uri)) {
@@ -93,6 +94,15 @@ if ( ! function_exists('site_url'))
 		}
 
 		$uri = ltrim(trim((string) $uri), '/');
+
+		if ($index_page && strpos($uri, $index_page) === 0) {
+			$uri = substr($uri, strlen($index_page));
+			$uri = ltrim($uri, '/');
+		}
+
+		if ($index_page) {
+			return $base_url . '/' . $index_page . '/' . $uri;
+		}
 
 		return $base_url . '/' . $uri;
 	}
@@ -134,7 +144,7 @@ if ( ! function_exists('load_js'))
 	{
 		foreach ($paths as $path)
 		{
-			echo '<script src="' . base_url() . $path . '.js"></script>' . "\r\n";
+			echo '<script src="' . BASE_URL . PUBLIC_DIR . '/' . $path . '.js"></script>' . "\r\n";
 		}
 	}
 }
@@ -151,7 +161,7 @@ if ( ! function_exists('load_css'))
 	{
 		foreach ($paths as $path)
 		{
-			echo '<link rel="stylesheet" href="' . base_url() . $path . '.css" type="text/css" />' . "\r\n";
+			echo '<link rel="stylesheet" href="' . BASE_URL . PUBLIC_DIR .'/' . $path . '.css" type="text/css" />' . "\r\n";
 		}
 	}
 }
@@ -166,15 +176,26 @@ if ( ! function_exists('active'))
 	 */
 	function active($currect_page, $css_class = 'active')
 	{
-		$uri_array = explode('/', rtrim(strtok($_SERVER["REQUEST_URI"], '?'), '/'));
-
+		// Explode REQUEST_URI
+		$uri_array =  explode('/', rtrim(strtok($_SERVER["REQUEST_URI"], '?'), '/'));
+		// Explode the BASE_URL
 		$url_array = explode('/', trim(preg_replace('(^https?://)', '', BASE_URL), '/'));
-
+		// Find the installation folder index base on $url_array
 		$folder_index = array_search(end($url_array), array_values($uri_array));
+		// Check if index_page is not empty in config file
+		if(! empty(config_item('index_page')))
+		{
+			// +2 to the installation folder index to get the index of the route and the rest of the segments if index_page is not empty
+			$url = implode('/', array_slice($uri_array, $folder_index + 2));
+		}
+		else
+		{
+			// +1 to the installation folder index to get the index of the route and the rest of the segments if index_page is not empty
+			$url = implode('/', array_slice($uri_array, $folder_index + 1));
+		}
 
-		$url = implode('/', array_slice($uri_array, $folder_index + 1));
-
-		if ($currect_page == explode('/', $url)[0] || $currect_page == $url) {
+		if($currect_page == explode('/', $url)[0] || $currect_page == $url)
+		{
 			echo $css_class;
 		}
 	}

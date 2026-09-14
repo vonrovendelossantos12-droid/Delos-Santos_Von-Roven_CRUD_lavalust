@@ -44,16 +44,19 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 /** @var object $router **/
 
-$router->get('/', 'AuthController::loginForm');
-$router->get('/login', 'AuthController::loginForm');
-$router->post('/login', 'AuthController::login');
+$router->any('/', 'AuthController::login');
+$router->any('/login', 'AuthController::login');
 $router->get('/logout', 'AuthController::logout');
 
-$router->group(['middleware' => 'auth'], function ($router) {
-    $router->get('/products', 'ProductController::index');
-    $router->get('/products/create', 'ProductController::create');
-    $router->post('/products/store', 'ProductController::store');
-    $router->get('/products/edit/{id}', 'ProductController::edit')->where_number('id');
-    $router->post('/products/update/{id}', 'ProductController::update')->where_number('id');
-    $router->post('/products/delete/{id}', 'ProductController::delete')->where_number('id');
+$router->group(['middleware' => 'AuthMiddleware'], function ($router) {
+    $router->get('/product/display', 'ProductController::read');
+    $router->any('/product/create', 'ProductController::create');
+    $router->any('/product/edit/{id}', 'ProductController::edit');
+    $router->get('/product/delete/{id}', 'ProductController::delete');
+
+    $router->get('/products', 'ProductController::read');
+    $router->any('/products/create', 'ProductController::create');
+    $router->any('/products/edit/{id}', 'ProductController::edit');
+    $router->get('/products/delete/{id}', 'ProductController::delete');
 });
+

@@ -738,60 +738,35 @@ class Form_validation {
      * @return void
      */
     public function rules($rules, $custom_errors = [])
-{
-    $rules = explode('|', $rules);
-
-    foreach ($rules as $rule)
     {
-        $param = null;
+        $rules = explode('|', $rules);
 
-        if (preg_match('/(.*?)\[(.*)\]/s', $rule, $match))
+        foreach ($rules as $rule)
         {
-            $rule  = $match[1];
-            $param = $match[2];
-        }
+            $param = null;
 
-        $custom_error = $custom_errors[$rule] ?? '';
-
-        if (method_exists($this, $rule))
-        {
-            if ($param !== null)
+            if (preg_match('/(.*?)\[(.*)\]/', $rule, $match))
             {
-                $params = array_map([$this, 'resolve_param'], str_getcsv($param, ',', '"', ''));
-                $params[] = $custom_error; // append instead of trailing positional
-                $this->$rule(...$params);
+                $rule  = $match[1];
+                $param = $match[2];
             }
-            else
+
+            $custom_error = $custom_errors[$rule] ?? '';
+
+            if (method_exists($this, $rule))
             {
-                $this->$rule($custom_error);
+                if ($param !== null)
+                {
+                    $this->$rule($param, $custom_error);
+                }
+                else
+                {
+                    $this->$rule($custom_error);
+                }
             }
         }
-    }
 
-    return $this;
-}
-
-    /**
-     * Resolve {var} placeholders in rule params to their POST values
-     *
-     * @param string $param
-     * @return string
-     */
-    private function resolve_param($param)
-    {
-        $param = trim($param);
-
-        if ($param === 'self')
-        {
-            return $this->value;
-        }
-
-        if (preg_match('/^\{\$?(\w+)\}$/', $param, $match))
-        {
-            return $this->post_arrays[$match[1]] ?? $param;
-        }
-
-        return $param;
+        return $this;
     }
 
     /**
