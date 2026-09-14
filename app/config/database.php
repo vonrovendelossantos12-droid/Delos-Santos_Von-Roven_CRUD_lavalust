@@ -55,6 +55,7 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 |   You can create new instance of the database by adding new element of
 |   $database variable.
 |   Example: $database['another_example'] = array('key' => 'value')
+ another example would be nice.
 */
 
 $database['main'] = array(
