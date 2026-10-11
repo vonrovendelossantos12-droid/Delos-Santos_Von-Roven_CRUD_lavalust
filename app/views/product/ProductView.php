@@ -166,9 +166,9 @@
         <?php endif; ?>
 
         <div class="header">
-            <h4>Welcome, <?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></h4>
+            <h4>Welcome, <?php echo htmlspecialchars((string) ($name ?? 'User'), ENT_QUOTES, 'UTF-8'); ?></h4>
             <div class="nav-actions">
-                <?php if ($user_role === 'admin'): ?>
+                <?php if (($user_role ?? '') === 'admin'): ?>
                     <a href="<?= site_url('/product/create'); ?>" class="btn-link primary">+ Add Product</a>
                 <?php endif; ?>
                 <a href="<?= site_url('/logout'); ?>" class="btn-link">Logout</a>
@@ -184,24 +184,24 @@
                         <th>Description</th>
                         <th>Price</th>
                         <th>Created At</th>
-                        <?php if ($user_role === 'admin'): ?>
+                        <?php if (($user_role ?? '') === 'admin'): ?>
                             <th>Actions</th>
                         <?php endif; ?>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($products as $product): ?>
+                    <?php foreach ($products ?? [] as $product): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($product['id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td>$<?php echo htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><?php echo htmlspecialchars($product['created_at'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <?php if ($user_role === 'admin'): ?>
+                            <td><?php echo htmlspecialchars((string) ($product['id'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars((string) ($product['product_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars((string) ($product['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td>$<?php echo htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td><?php echo htmlspecialchars((string) ($product['created_at'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></td>
+                            <?php if (($user_role ?? '') === 'admin'): ?>
                                 <td>
                                     <div class="action-cell">
-                                        <a href="<?= site_url('/product/edit/' . $product['id']); ?>" class="action-btn">Edit</a>
-                                        <a href="<?= site_url('/product/delete/' . $product['id']); ?>" class="action-btn delete" onclick="return confirm('Delete this product?');">Delete</a>
+                                        <a href="<?= site_url('/product/edit/' . ($product['id'] ?? 0)); ?>" class="action-btn">Edit</a>
+                                        <a href="<?= site_url('/product/delete/' . ($product['id'] ?? 0)); ?>" class="action-btn delete" onclick="return confirm('Delete this product?');">Delete</a>
                                     </div>
                                 </td>
                             <?php endif; ?>

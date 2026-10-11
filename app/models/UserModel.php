@@ -24,4 +24,19 @@ class UserModel extends Model {
             ->where('is_active', 1)
             ->get();
     }
+
+    public function find_active_by_id($id)
+    {
+        return $this->db->table('users')
+            ->where('id', $id)
+            ->where('is_active', 1)
+            ->get();
+    }
+
+    public function update_password($id, $password_hash)
+    {
+        return $this->db->table('users')
+            ->where('id', $id)
+            ->update(['password' => $password_hash]);
+    }
 }

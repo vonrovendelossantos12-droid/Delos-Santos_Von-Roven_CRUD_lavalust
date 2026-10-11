@@ -1,16 +1,42 @@
 services:
   - type: web
-    name: lavalust
-    env: php
+    name: lavalust-product-api
+    env: docker
     plan: free
-    buildCommand: ""
-    startCommand: php -S 0.0.0.0:$PORT -t public
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
     envVars:
       - key: APP_ENV
         value: production
-      - key: APP_URL
-        value: https://your-app-name.onrender.com
       - key: DB_DRIVER
-        value: pgsql
-      - key: DB_SSLMODE
-        value: require
+        value: mysql
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL_CA
+        value: /etc/secrets/aiven-ca.pem
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_KEY
+        sync: false
+      - key: API_ALLOWED_ORIGINS
+        sync: false
+      - key: MIGRATIONS_ENABLED
+        value: "false"
+
+  - type: web
+    name: lavalust-product-frontend
+    runtime: static
+    plan: free
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false

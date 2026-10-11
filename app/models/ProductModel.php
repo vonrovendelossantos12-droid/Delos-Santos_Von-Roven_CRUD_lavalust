@@ -34,6 +34,7 @@ class ProductModel extends Model {
         );
 
         $this->db->table('products')->insert($data);
+        return $this->db->last_id();
     }
 
     public function update($id, $product_name, $description, $price, $quantity){

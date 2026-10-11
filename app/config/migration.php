@@ -44,7 +44,10 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 | and disable it back when you're done.
 |
 */
-$config['migration_enabled'] = FALSE;
+$migration_setting = getenv('MIGRATIONS_ENABLED');
+$config['migration_enabled'] = $migration_setting === false
+    ? getenv('APP_ENV') !== 'production'
+    : filter_var($migration_setting, FILTER_VALIDATE_BOOLEAN);
 
 /*
 |--------------------------------------------------------------------------

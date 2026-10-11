@@ -282,3 +282,47 @@ LavaLust Framework is open-source software licensed under the **[MIT License](ht
 - **GitHub Repository:** [https://github.com/ronmarasigan/lavalust](https://github.com/ronmarasigan/lavalust)
 - **Documentation:** [https://lavalust.netlify.app](https://lavalust.netlify.app)
 - **Report an Issue:** [https://github.com/ronmarasigan/lavalust/issues](https://github.com/ronmarasigan/lavalust/issues)
+
+---
+
+## Product Management System
+
+This repository also contains a JWT-protected products API (`/api`) and the React/Vite client in `frontend/`. All browser product operations go through LavaLust; the frontend never connects to MySQL.
+
+### API endpoints
+
+| Method | Endpoint | Authentication |
+|---|---|---|
+| `POST` | `/api/login` | Public |
+| `GET` | `/api/health` | Public |
+| `GET` | `/api/products` | Bearer token |
+| `GET` | `/api/products/{id}` | Bearer token |
+| `POST` | `/api/products` | Bearer token |
+| `PUT` / `PATCH` | `/api/products/{id}` | Bearer token |
+| `DELETE` | `/api/products/{id}` | Bearer token |
+
+The API uses the LavaLust `Api` library for JSON responses and JWT validation. Access tokens expire after 15 minutes. Product input is validated server-side.
+
+### Local setup
+
+1. Copy `.env.example` to `.env`; set the Aiven MySQL host, port, database, username, password, and CA certificate path. Keep `.env` out of Git.
+2. Set independent, random `JWT_SECRET` and `REFRESH_TOKEN_KEY` values of at least 32 characters. Set `API_ALLOWED_ORIGINS` to the exact frontend origins.
+3. Apply database migrations from the repository root with `php lava migration run`. Migrations default to enabled outside production; production deployments keep them disabled. Migration routes are registered only for CLI requests.
+4. Create the first login in the `users` table. Generate a password hash with `php -r "echo password_hash('choose-a-strong-password', PASSWORD_DEFAULT), PHP_EOL;"`, then insert a user with a unique username/email, that hash, role `admin`, and `is_active` set to `1`:
+
+   ```sql
+   INSERT INTO users (username, email, password, role, is_active)
+   VALUES ('admin', 'admin@example.com', '<paste-generated-password-hash>', 'admin', 1);
+   ```
+
+   Replace the sample credentials and hash with your own. A legacy plaintext password is re-hashed after a successful API login.
+5. Start the API using an Apache/PHP setup that serves `public/`, or run `php -S 127.0.0.1:8000 public/index.php` for local API development.
+6. In `frontend/`, copy `.env.example` to `.env.local`, set `VITE_API_BASE_URL` (for example `http://127.0.0.1:8000/api`), then run `npm install` and `npm run dev`.
+
+### Aiven and Render deployment
+
+The root `render.yaml` defines a Docker-based LavaLust API and a Render static site for the React client. Connect the repository as a Render Blueprint and provide the prompted environment values. In the API service, set `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, both token secrets, and `API_ALLOWED_ORIGINS`. Use a Render secret file at `/etc/secrets/aiven-ca.pem` containing the Aiven CA certificate; `DB_SSL_CA` is configured to that path, and PDO verifies the MySQL server certificate.
+
+Set the static site's `VITE_API_BASE_URL` to `https://<your-api-service>.onrender.com/api`, and set the API's `API_ALLOWED_ORIGINS` to the exact `https://<your-static-site>.onrender.com` origin. Apply migrations once with `MIGRATIONS_ENABLED=true` using the CLI, then set it back to `false`; never expose migration endpoints over HTTP.
+
+The frontend source is kept under `frontend/` in this repository. If the submission requires two separate GitHub repositories, publish that directory as its own repository and point the static-site service at it. Deployment requires your own GitHub, Render, and Aiven accounts; no database passwords or tokens belong in source control.

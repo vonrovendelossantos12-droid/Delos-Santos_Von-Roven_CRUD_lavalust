@@ -138,25 +138,25 @@
             </ul>
         <?php endif; ?>
 
-        <form action="<?= site_url('/product/edit/' . $product['id']); ?>" method="post">
+        <form action="<?= site_url('/product/edit/' . ($product['id'] ?? 0)); ?>" method="post">
             <div class="form-group">
                 <label for="product_name">Product Name:</label>
-                <input type="text" id="product_name" name="product_name" value="<?= htmlspecialchars($product['product_name'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                <input type="text" id="product_name" name="product_name" value="<?= htmlspecialchars((string) ($product['product_name'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
             </div>
 
             <div class="form-group">
                 <label for="description">Description:</label>
-                <textarea id="description" name="description" required><?= htmlspecialchars($product['description'], ENT_QUOTES, 'UTF-8'); ?></textarea>
+                <textarea id="description" name="description" required><?= htmlspecialchars((string) ($product['description'] ?? ''), ENT_QUOTES, 'UTF-8'); ?></textarea>
             </div>
 
             <div class="form-group">
                 <label for="price">Price:</label>
-                <input type="number" id="price" name="price" step="0.01" value="<?= htmlspecialchars($product['price'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                <input type="number" id="price" name="price" step="0.01" value="<?= htmlspecialchars((string) ($product['price'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
             </div>
 
             <div class="form-group">
                 <label for="quantity">Quantity:</label>
-                <input type="number" id="quantity" name="quantity" value="<?= htmlspecialchars($product['quantity'], ENT_QUOTES, 'UTF-8'); ?>" required>
+                <input type="number" id="quantity" name="quantity" value="<?= htmlspecialchars((string) ($product['quantity'] ?? ''), ENT_QUOTES, 'UTF-8'); ?>" required>
             </div>
 
             <button type="submit">Update Product</button>

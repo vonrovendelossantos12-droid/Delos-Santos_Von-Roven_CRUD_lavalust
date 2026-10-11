@@ -44,10 +44,24 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 */
 /** @var object $router **/
 ///somehting new
+// Migration routes are only registered for CLI requests.
+if (PHP_SAPI === 'cli' && !isset($_SERVER['REQUEST_METHOD'])) {
+    $router->get('create-migration/{migration_class}', 'MigrationController::create_migration');
+    $router->get('migrate', 'MigrationController::migrate');
+    $router->get('rollback', 'MigrationController::rollback');
+    $router->get('rollback-all', 'MigrationController::rollback_all');
+    $router->get('refresh', 'MigrationController::refresh');
+    $router->get('status', 'MigrationController::status');
+}
 
 $router->any('/', 'AuthController::login');
 $router->any('/login', 'AuthController::login');
 $router->get('/logout', 'AuthController::logout');
+
+$router->get('/api/health', 'ProductApiController::health');
+$router->any('/api/login', 'ProductApiController::login');
+$router->any('/api/products', 'ProductApiController::products');
+$router->any('/api/products/{id}', 'ProductApiController::product');
 
 $router->group(['middleware' => 'AuthMiddleware'], function ($router) {
     $router->get('/product/display', 'ProductController::read');
@@ -60,4 +74,3 @@ $router->group(['middleware' => 'AuthMiddleware'], function ($router) {
     $router->any('/products/edit/{id}', 'ProductController::edit');
     $router->get('/products/delete/{id}', 'ProductController::delete');
 });
-
